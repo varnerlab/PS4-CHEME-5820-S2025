@@ -6,7 +6,8 @@ function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function
     context::MyBanditConsumerContextModel = nothing)::Array{Float64,2}
 
     # initialize -
-    K = model.K # get the number of arms
+    category_action_map = model.K # get the number of arms
+    K = sum(values(category_action_map)); # number of arms (sum of all arms in each category)
     rewards = zeros(Float64, T, K); # rewards for each arm
 
     # how many expore steps should we take?
