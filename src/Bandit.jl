@@ -9,6 +9,7 @@ function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function
     category_action_map = model.K # get the number of arms
     K = sum(values(category_action_map)); # number of arms (sum of all arms in each category)
     rewards = zeros(Float64, T, K); # rewards for each arm
+    d = DiscreteUniform(1,100); # random number generator
 
     # how many expore steps should we take?
     Nₐ = ((T/K)^(2/3))*(log(T))^(1/3) |> x -> round(Int,x); # number of explore steps
@@ -16,6 +17,15 @@ function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function
     # exploration phase -
     counter = 1;
     for a ∈ 1:K
+
+        # build action vector -
+        av = zeros(Int64, K); # action vector
+        av[a] = 1; # set the action to the current arm
+
+        # quantity value -
+        nv = zeros(Int64, K); # quantity vector
+        nv[a] = rand(d); # set the quantity to a random value
+
         for _ ∈ 1:Nₐ
             rewards[counter, a] = world(a); # store from action a
             counter += 1;
