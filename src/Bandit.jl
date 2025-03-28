@@ -9,7 +9,18 @@ function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function
     category_action_map = model.K # get the number of arms
     K = sum(values(category_action_map)); # number of arms (sum of all arms in each category)
     rewards = zeros(Float64, T, K); # rewards for each arm
-    d = DiscreteUniform(1,100); # random number generator
+    n = model.n; # get the recommended quantity of each good in each category
+    number_of_categories = length(category_action_map); # number of categories
+    
+    # flatten the recommended quantity of each good in each category -
+    goods = zeros(Int64, K); # recommended quantity of each good in each category
+    counter = 1;
+    for i ∈ 1:number_of_categories
+        for j ∈ 1:category_action_map[i]
+            goods[counter] = n[i][j]; # set the recommended quantity of each good in each category
+            counter += 1; # increment the counter
+        end
+    end
 
     # how many expore steps should we take?
     Nₐ = ((T/K)^(2/3))*(log(T))^(1/3) |> x -> round(Int,x); # number of explore steps
@@ -24,10 +35,10 @@ function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function
 
         # quantity value -
         nv = zeros(Int64, K); # quantity vector
-        nv[a] = rand(d); # set the quantity to a random value
+        nv[a] = goods[a]; # set the quantity to a random value
 
         for _ ∈ 1:Nₐ
-            rewards[counter, a] = world(a); # store from action a
+            rewards[counter, a] = world(a, nv, context); # store from action a
             counter += 1;
         end
     end
@@ -39,8 +50,10 @@ function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function
 
     # exploitation phase -
     a = argmax(μ); # compute the arm with best average reward
+    nv = zeros(Int64, K); # quantity vector
     for _ ∈ 1:(T - Nₐ*K)
-        rewards[counter, a] = world(a); # store the reward
+        nv[a] = goods[a]; # set the purchased quantity to a random value
+        rewards[counter, a] = world(a, nv, context); # store the reward
         counter += 1;
     end
     
@@ -52,64 +65,51 @@ function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Functio
     context::MyBanditConsumerContextModel = nothing)::Array{Float64,2}
 
     # initialize -
-    K = model.K # get the number of arms
+    category_action_map = model.K # get the number of arms
+    number_of_categories = length(category_action_map); # number of categories
+    K = sum(values(category_action_map)); # number of arms (sum of all arms in each category)
     rewards = zeros(Float64, T, K); # rewards for each arm
 
+    # flatten the recommended quantity of each good in each category -
+    goods = zeros(Int64, K); # recommended quantity of each good in each category
+    n = model.n; # get the recommended quantity of each good in each category
+    number_of_categories = length(category_action_map); # number of categories
+    counter = 1;
+    for i ∈ 1:number_of_categories
+        for j ∈ 1:category_action_map[i]
+            goods[counter] = n[i][j]; # set the recommended quantity of each good in each category
+            counter += 1; # increment the counter
+        end
+    end
+
+    # main -
     for t ∈ 1:T
         ϵₜ = (1.0/(t^(1/3)))*(log(K*t))^(1/3); # compute the epsilon value -
 
+        # if we were to purchase stuff, how much would we purchase?
         p = rand(); # role a random number
-        aₜ = 1; # default action is to pull the first arm
+        aₜ = zeros(Int64, number_of_categories); # initialize action vector
         if (p ≤ ϵₜ)
-            aₜ = rand(1:K);  # ramdomly select an arm
+            for i ∈ 1:number_of_categories
+                aₜ[i] = rand(1:category_action_map[i]); # randomly select an arm
+            end
         else
             
-            μ = zeros(Float64, K); # average reward for each arm
-            for a ∈ 1:K
-                μ[a] = findall(x -> x != 0.0, rewards[:, a]) |> i-> mean(rewards[i, a]); # compute the average reward
-            end
-            aₜ = argmax(μ); # compute the arm with best average reward
-        end
-        rewards[t, aₜ] = world(aₜ); # store the reward
-    end
-
-    # return -
-    return rewards;
-end
-
-function _solve(model::MyUCB1AlgorithmModel; T::Int = 0, world::Function = _null, 
-    context::MyBanditConsumerContextModel = nothing)::Array{Float64,2}
-
-    # initialize -
-    K = model.K # get the number of arms
-    rewards = zeros(Float64, T, K); # rewards for each arm
-    Nₐ = zeros(Int64, K); # number of times we have pulled each arm
-
-    # try each arm once
-    counter = 1;
-    for a = 1:K
-        rewards[counter, a] = world(a); # pull each arm once
-        Nₐ[a] += 1; # increment the counter
-        counter += 1;
-    end
-    
-    # main loop -
-    for t ∈ counter:T
-
-        # conpute the UCB value 
-        tmp = zeros(Float64, K);
-        μ = zeros(Float64, K); # average reward for each arm
-        for a ∈ 1:K
-            μ[a] = findall(x -> x != 0.0, rewards[:, a]) |> i-> mean(rewards[i, a]); # compute the average reward
-        end
-        
-        for i ∈ 1:K
-            tmp[i] = μ[i] + sqrt((2*log(t))/Nₐ[i]); # compute the UCB value
+            # decide which arm to play *in each category* -
+            for i ∈ 1:number_of_categories
+                μ = zeros(Float64, category_action_map[i]); # average reward for each arm in this category
+                for a ∈ 1:category_action_map[i]
+                    μ[a] = findall(x -> x != 0.0, rewards[:, a]) |> k-> mean(rewards[k, a]); # compute the average reward
+                end
+                aₜ[i] = argmax(μ); # compute the arm with best average reward
+            end            
         end
 
-        aₜ = argmax(tmp); # select the arm with the highest UCB value
-        Nₐ[aₜ] += 1; # increment the counter
-        rewards[t, aₜ] = world(aₜ); # store the reward
+        rₜ = world(aₜ, goods, context); # get the reward from the world
+        for i ∈ 1:number_of_categories
+            j = 1; # what is the index of the arm in the rewards array? # TODO index?
+            rewards[t, j] = rₜ 
+        end 
     end
 
     # return -

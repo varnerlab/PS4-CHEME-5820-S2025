@@ -16,29 +16,12 @@ mutable struct MyBanditConsumerContextModel <: AbstractBanditConsumerContextMode
     MyBanditConsumerContextModel() = new();
 end
 
-mutable struct MyExploreFirstAlgorithmModel <: AbstractBanditAlgorithmModel
-
-    # data -
-    K::Dict{Int64,Int64} # number of arms in each category
-
-    # constructor -
-    MyExploreFirstAlgorithmModel() = new();
-end
-
 mutable struct MyEpsilonGreedyAlgorithmModel <: AbstractBanditAlgorithmModel
 
     # data -
     K::Dict{Int64,Int64} # number of arms in each category
+    n::Dict{Int64, Array{Float64,1}} # recomended quantity of each good in each category
 
     # constructor -
     MyEpsilonGreedyAlgorithmModel() = new();
-end
-
-mutable struct MyUCB1AlgorithmModel <: AbstractBanditAlgorithmModel
-
-    # data -
-    K::Dict{Int64,Int64} # number of arms in each category
-
-    # constructor -
-    MyUCB1AlgorithmModel() = new();
 end
