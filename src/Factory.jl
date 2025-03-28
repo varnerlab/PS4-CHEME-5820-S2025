@@ -13,13 +13,13 @@ function build(modeltype::Type{MyEpsilonGreedyAlgorithmModel}, data::NamedTuple)
     return model;
 end
 
-function build(modeltype::MyBanditConsumerContextModel, data::NamedTuple)
+function build(modeltype::Type{MyBanditConsumerContextModel}, data::NamedTuple)::MyBanditConsumerContextModel
 
     # initialize -
     m = data.m; # number of categories of goods
     γ = data.γ; # consumer's preference for each category of goods
     σ = data.σ; # uncetainty of consumer's preference for each category of goods
-    β = data.β; # consumer's preference for each category of goods
+    Z = data.Z; # consumer's error model
     C = data.C; # price of each good in each category
     λ = data.λ; # how budget sensitive the consumer is
     B = data.B; # consumer's budget
@@ -29,7 +29,7 @@ function build(modeltype::MyBanditConsumerContextModel, data::NamedTuple)
     model.m = m;
     model.γ = γ;
     model.σ = σ;
-    model.β = β;
+    model.Z = Z;
     model.C = C;
     model.λ = λ;
     model.B = B;

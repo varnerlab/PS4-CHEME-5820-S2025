@@ -7,7 +7,7 @@ mutable struct MyBanditConsumerContextModel <: AbstractBanditConsumerContextMode
     m::Int64 # number of categories of goods
     γ::Dict{Int64, Array{Int64,1}} # consumer's preference for each category of goods
     σ::Dict{Int64, Array{Float64,1}} # uncetainty of consumer's preference for each category of goods
-    β::Dict{Int64, Array{Beta,1}} # consumer's preference for each category of goods
+    Z::Dict{Int64, Normal} # consumer's preference for each category of goods
     C::Dict{Int64, Array{Float64,1}} # price of each good in each category
     λ::Float64 # how budget sensitive the consumer is
     B::Float64 # consumer's budget
