@@ -32,7 +32,13 @@ function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Functio
             μ = zeros(Float64, N); # average reward for each possible goods combination
             for a ∈ 1:N
                 μ[a] = filter(x -> x != 0.0, rewards[:,a]) |> x-> mean(x)
+
+                # fix NaN -
+                if (isnan(μ[a]) == true)
+                    μ[a] = -Inf; # replace NaN with a big negative
+                end
             end
+
             î = argmax(μ); # compute the arm with best average reward
             aₜ = digits(î, base=2, pad=K); # generate a binary representation of the number, with K digits      
         end
@@ -63,7 +69,7 @@ Solve the bandit problem using the given model.
 - `Array{Float64,2}`: The rewards for each arm at each round.
 """
 function solve(model::AbstractBanditAlgorithmModel; T::Int = 0, world::Function = _null, 
-    context::MyBanditConsumerContextModel = nothing)::Dict{Int64, Array{Float64,2}}
+    context::MyBanditConsumerContextModel = nothing)::Array{Float64,2}
     return _solve(model, T = T, world = world, context = context);
 end
 
