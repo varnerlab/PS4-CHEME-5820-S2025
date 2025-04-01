@@ -2,7 +2,10 @@
 # placeholder - always return 0
 _null(action::Int64)::Int64 = return 0;
 
-
+"""
+    private logic called by the public solve method. This implementation is similar to the `L7b` impl, but
+    we've modified it to work with combinations, and use a weighted online average for the rewards.
+"""
 function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Function = _null, 
     context::MyBanditConsumerContextModel = nothing)::Array{Float64,2}
 
@@ -30,26 +33,14 @@ function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Functio
             î = rand(1:N); # randomly select an integer from 1 to N (this will be used to generate a binary representation of the action vector)
             aₜ = digits(î, base=2, pad=K); # generate a binary representation of the number, with K digits
         else
-            # μ = zeros(Float64, N); # average reward for each possible goods combination
-            # for a ∈ 1:N
-            #     μ[a] = filter(x -> x != 0.0, rewards[:,a]) |> x-> mean(x)
-
-            #     # fix NaN -
-            #     if (isnan(μ[a]) == true)
-            #         μ[a] = -Inf; # replace NaN with a big negative
-            #     end
-            # end
-
             î = argmax(μ); # compute the arm with best average reward
             aₜ = digits(î, base=2, pad=K); # generate a binary representation of the number, with K digits      
         end
 
         # call out to the world, record the result.
         rₜ = world(aₜ, goods, context); # get the reward from the world
+        μ[î]+=0.8*(rₜ + μ[î]); # update the average reward for the chosen arm (learning rate = 0.8)
         rewards[t, î] = rₜ # store the reward
-
-        # update moving average for the chosen arm
-        μ[î]+=0.8*(rₜ + μ[î]); # update the average reward for the chosen arm
     end
 
     # return -
