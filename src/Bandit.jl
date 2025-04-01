@@ -11,6 +11,7 @@ function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Functio
     goods = model.n; # get the recommended quantity of each good in each category
     N = 2^K; # this is the maximum number of arms we can have (we have K goods, with each good being {0 | 1})
     rewards = Array{Float64,2}(undef, T, N); # rewards for possible arm
+    μ = zeros(Float64, N); # average reward for each possible goods combination
 
     # initialiize the rewards to zero -
     fill!(rewards, 0.0); # fill the rewards array with zeros
@@ -29,22 +30,26 @@ function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Functio
             î = rand(1:N); # randomly select an integer from 1 to N (this will be used to generate a binary representation of the action vector)
             aₜ = digits(î, base=2, pad=K); # generate a binary representation of the number, with K digits
         else
-            μ = zeros(Float64, N); # average reward for each possible goods combination
-            for a ∈ 1:N
-                μ[a] = filter(x -> x != 0.0, rewards[:,a]) |> x-> mean(x)
+            # μ = zeros(Float64, N); # average reward for each possible goods combination
+            # for a ∈ 1:N
+            #     μ[a] = filter(x -> x != 0.0, rewards[:,a]) |> x-> mean(x)
 
-                # fix NaN -
-                if (isnan(μ[a]) == true)
-                    μ[a] = -Inf; # replace NaN with a big negative
-                end
-            end
+            #     # fix NaN -
+            #     if (isnan(μ[a]) == true)
+            #         μ[a] = -Inf; # replace NaN with a big negative
+            #     end
+            # end
 
             î = argmax(μ); # compute the arm with best average reward
             aₜ = digits(î, base=2, pad=K); # generate a binary representation of the number, with K digits      
         end
 
         # call out to the world, record the result.
-        rewards[t, î] = world(aₜ, goods, context); # store the reward
+        rₜ = world(aₜ, goods, context); # get the reward from the world
+        rewards[t, î] = rₜ # store the reward
+
+        # update moving average for the chosen arm
+        μ[î]+=0.8*(rₜ + μ[î]); # update the average reward for the chosen arm
     end
 
     # return -
