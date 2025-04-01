@@ -10,6 +10,7 @@ function table(results::Matrix{Float64},
 
     # compute the best collection of goods -
     K = algorithm.K; # number of arms in the algorithm
+    C = context.C; # cost of each good
     N = 2^K; # number of possible goods combinations (2^K) - this is the total number of combinations of goods we can have 
 
     μ = zeros(Float64, N); # average reward for each possible goods combination
@@ -35,7 +36,8 @@ function table(results::Matrix{Float64},
         row_df = (
             good = i,
             purchase = aₜ[i] == 1 ? "Yes" : "No", # determine if the good is purchased or not
-            reward = aₜ[i]*n[i]*γ[i],
+            cost = aₜ[i]*n[i]*C[i],
+            benifit = aₜ[i]*n[i]*γ[i],
         );
         push!(df, row_df); # add the row to the dataframe
     end
