@@ -35,7 +35,7 @@ function table(results::Matrix{Float64},
         row_df = (
             good = i,
             purchase = aₜ[i] == 1 ? "Yes" : "No", # determine if the good is purchased or not
-            cumreward = aₜ[i]*n[i]*γ[i],
+            reward = aₜ[i]*n[i]*γ[i],
         );
         push!(df, row_df); # add the row to the dataframe
     end
