@@ -44,15 +44,15 @@ Random.seed!(2025)
 
 # Model architecture
 const N_VISIBLE = 256;   # number of visible units (must match fingerprint dimension)
-const N_HIDDEN  = 512;   # number of hidden units (increase for more capacity)
+const N_HIDDEN  = 512;   # number of hidden units
 
 # Training hyperparameters
-const N_EPOCHS   = 200;  # total number of training iterations over the dataset
-const BATCH_SIZE = 32;   # number of samples per mini-batch
-const ETA        = 0.01; # learning rate η (try 0.001–0.1; smaller = more stable)
-const BETA       = 1.0;  # inverse temperature β (higher = sharper distributions)
-const T_GIBBS    = 2;    # number of Gibbs steps T (T=2 → CD-1; T>2 → CD-(T-1))
-const TOL        = 1e-10 # convergence tolerance (set high to rely on N_EPOCHS)
+const N_EPOCHS   = 200;   # total number of training epochs (each = one full pass over data)
+const BATCH_SIZE = 32;    # number of samples per mini-batch
+const ETA        = 0.01;  # learning rate η
+const BETA       = 1.0;   # inverse temperature
+const T_GIBBS    = 2;     # number of Gibbs steps T (T=2 → CD-1)
+const TOL        = 1e-10  # convergence tolerance (set high to rely on N_EPOCHS)
 
 # Logging
 const LOG_EVERY  = 10;   # print a progress message every this many epochs
@@ -92,9 +92,11 @@ rbm = build(MyRestrictedBoltzmannMachineModel, (
 # ──────────────────────────────────────────────────────────────────────────────
 println("Training (CD-$(T_GIBBS-1), η=$(ETA), β=$(BETA), batch=$(BATCH_SIZE), epochs=$(N_EPOCHS))...\n")
 
+n_updates_per_epoch = ceil(Int, N_total / BATCH_SIZE)  # one full pass over data
+
 for epoch in 1:N_EPOCHS
     global rbm = learn(rbm, fp_pm1, p_data;
-        maxnumberofiterations = 1,
+        maxnumberofiterations = n_updates_per_epoch,
         T         = T_GIBBS,
         β         = BETA,
         batchsize = BATCH_SIZE,
@@ -119,6 +121,7 @@ jldsave(out_path;
     b         = rbm.b,
     a         = rbm.a,
     n_visible = N_VISIBLE,
-    n_hidden  = N_HIDDEN)
+    n_hidden  = N_HIDDEN,
+    beta      = BETA)
 
-println("Saved → $(out_path)  ($(N_VISIBLE) → $(N_HIDDEN))")
+println("Saved → $(out_path)  ($(N_VISIBLE) → $(N_HIDDEN), β=$(BETA))")

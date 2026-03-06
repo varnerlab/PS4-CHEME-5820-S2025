@@ -31,6 +31,7 @@ using DataFrames
 using CSV
 using StatsBase
 using Random
+using Test
 
 # set random seed for reproducibility -
 Random.seed!(1234);
