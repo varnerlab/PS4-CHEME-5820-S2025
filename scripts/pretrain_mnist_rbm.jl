@@ -30,7 +30,7 @@ const N_VISIBLE  = 784             # 28 x 28 pixels
 const N_HIDDEN   = 512             # hidden units
 const N_EPOCHS   = 300             # training epochs
 const BATCH_SIZE = 50              # mini-batch size
-const ETA        = 0.01            # learning rate
+const ETA        = 0.1             # learning rate
 const BETA       = 1.0             # inverse temperature
 const T_GIBBS    = 5               # Gibbs steps (T=5 -> CD-4)
 const TOL        = 1e-10           # convergence tolerance
