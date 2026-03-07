@@ -18,9 +18,8 @@ Training algorithm: Contrastive Divergence (CD-4)
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 
-using JLD2, Random, Statistics, LinearAlgebra
-using Distributions: Categorical
-using VLDataScienceMachineLearningPackage
+# load everything (packages + corrected local methods) via Include.jl -
+include(joinpath(@__DIR__, "..", "Include.jl"))
 
 Random.seed!(2025)
 
