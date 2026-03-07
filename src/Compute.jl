@@ -154,8 +154,6 @@ function learn(model::MyRestrictedBoltzmannMachineModel,
     counter = 1;
     is_ok_to_stop = false;
 
-    @info "Starting training loop ..."
-
     # main training loop -
     while (is_ok_to_stop == false)
 
