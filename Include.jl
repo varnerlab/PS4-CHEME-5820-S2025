@@ -34,7 +34,7 @@ using Random
 using Test
 
 # set random seed for reproducibility -
-Random.seed!(1234);
+Random.seed!(6712);
 
 # load my codes -
 include(joinpath(_PATH_TO_SRC, "Compute.jl"))
