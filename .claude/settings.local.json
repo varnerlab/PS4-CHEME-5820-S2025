@@ -6,7 +6,8 @@
       "Bash(julia:*)",
       "Bash(gh api:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(echo exit: $?:*)"
     ]
   }
 }
